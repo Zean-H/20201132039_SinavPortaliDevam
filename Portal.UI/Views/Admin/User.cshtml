@@ -1,0 +1,130 @@
+﻿@{
+    ViewData["Title"] = "Kullanıcı";
+    Layout = "_AdminLayout";
+}
+
+
+<div class="row pe-2">
+<h2>Kullanıcı</h2>
+<table class="table " id="tbCourseList">
+            <thead>
+                <tr>
+                <th scope="col"> Kullanıcı Id</th>
+                    <th scope="col">Kullanıcı Adı</th>
+                    <th scope="col">Tam İsim</th>
+                    <th scope="col">Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="kid"></td>
+                    <td id="kadi2"></td>
+                    <td id="kisim2"></td>
+                    <td id="kemail2"></td>
+                </tr>
+            </tbody>
+        </table>
+    <div>
+        <div class="mb-2 mt-5">
+            <label>Kullanıcı Adı</label>
+            <input type="text" id="kadi" class="form-control"/>
+        </div>
+        <div class="mb-2">
+            <label>Tam İsim</label>
+            <input type="text" id="kisim" class="form-control" />
+        </div>
+        <div class="mb-2">
+            <label>Email</label>
+            <input type="text" id="kemail" class="form-control" />
+        </div>
+        <button class="btn btn-dark" id="editbtn">Düzenle</button>
+        <div id="divResult"></div>
+    </div>
+
+
+    @section Scripts {
+        <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                var token = localStorage.getItem("token");
+                if (token == "" || token == null) {
+                    location.href = "/Home/Login";
+                    return false;
+                }
+
+                var ApiBaseUrl = "@ViewBag.ApiBaseUrl";
+                var userId = "@ViewBag.UserId";
+                GetUserInfo();
+
+                function GetUserInfo() {
+                    $.ajax({
+                        url: ApiBaseUrl + "User/GetUserById/" + userId,
+                        type: "Get",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization": "Bearer " + token
+                        },
+                        success: function (data) {
+                            $("#kadi2").append(data.userName);
+                            $("#kadi").val(data.userName);
+                            $("#kisim2").append(data.fullName);
+                            $("#kisim").val(data.fullName);
+                            
+                            $("#kid").append(userId);
+                            $("#kemail2").append(data.email);
+                            $("#kemail").val(data.email);
+
+                        },
+                        error: function () { }
+                    });
+
+                }
+                    $("#editbtn").click(function () {
+                    var userName = $("#kadi").val();
+                    var fullName = $("#kisim").val();
+                    var email = $("#kemail").val();
+
+                    var user = new Object();
+                    user.id = userId;
+                    user.userName = userName;
+                    user.fullName = fullName;
+                    user.email = email;
+                    console.log(user);
+
+                    $.ajax({
+                        url: ApiBaseUrl + "User/Update",
+                        type: "Put",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization": "Bearer " + token
+                        },
+                        data: JSON.stringify(user),
+                        success: function (data) {
+                            if (data.status) {
+                                $("#divResult")
+                                    .show()
+                                    .removeClass()
+                                    .addClass("alert alert-success")
+                                    .html(data.message)
+                                    .fadeOut(5000);
+
+                            } else {
+                                $("#divResult")
+                                    .show()
+                                    .removeClass()
+                                    .addClass("alert alert-danger")
+                                    .html(data.message)
+                                    .fadeOut(5000);
+                            }
+
+                        },
+                        error: function () { }
+                    });
+                    location.href = "/Admin/User/"+UserId;
+                });
+
+            });
+
+        </script>
+    }

@@ -1,0 +1,41 @@
+﻿@section Scripts
+{
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
+    <script>
+            $(document).ready(function () {
+                var token = localStorage.getItem("token");
+                if (token == "" || token == null) {
+                    location.href = "/Home/Login";
+                    return false;
+                }
+
+                var ApiBaseUrl = "@ViewBag.ApiBaseUrl";
+                var courseId = "@ViewBag.CourseId";
+                DeleteCourseInfo();
+
+                function DeleteCourseInfo() {
+                    var relationship = new Object();
+                    relationship.userId = userId;
+                    relationship.courseId = courseId;
+                    $.ajax({
+                        url: ApiBaseUrl + "AppUserCourse/DeleteCourseToUserRelationship",
+                        type: "DELETE",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization": "Bearer " + token
+                        },
+                        data: JSON.stringify(relationship),
+                        success: function (data) {
+                            $("#dersadi").val(data.title);
+                            console.log(data);
+                            $("#dersaciklama").val(data.description);
+
+                        },
+                        error: function () { }
+                    });
+                    location.href = "/Home/Profile";
+                }
+            });
+
+    </script>
+}

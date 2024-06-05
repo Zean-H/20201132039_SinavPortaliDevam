@@ -1,0 +1,77 @@
+﻿@{
+    ViewData["Title"] = "Sınavlar";
+    Layout = "_AdminLayout";
+}
+<div class="row text-center">
+    <div class=" text-center">
+        <h2 class="h3 mb-4 text-gray-800">Sınavlar</h2>
+        <div id="tables">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Sınav İsmi</th>
+                    <th scope="col">Sınav Açıklaması</th>
+                    <th scope="col">Başlangıç Tarihi</th>
+                    <th scope="col">Bitiş Tarihi</th>
+                    <th scope="col">Seçenekler</th>
+                </tr>
+            </thead>
+            <tbody id="exams">
+            </tbody>
+                    </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var token = localStorage.getItem("token");
+            if (token == "" || token == null) {
+                location.href = "/Home/Login";
+                return false;
+            }
+            var ApiBaseUrl = "@ViewBag.ApiBaseUrl";
+            GetExamList();
+
+            async function GetExamList(_courseId, i) {
+                $.ajax({
+                    url: ApiBaseUrl + "Assessment/GetAll/",
+                    method: "GET",
+                    contentType: "application/json",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    },
+                    success: function (data) {
+                        ExamsToTable(data);
+                    },
+                    error: function () { }
+                });
+            }
+
+            function ExamsToTable(data) {
+                var tr = "";
+                $.each(data, function (i, item) {
+                    var bg = "";
+                    tr += `<tr id="${(item.id)}">
+                            <td>${(i + 1)}</td>
+                            <td>${item.title}</td>
+                            <td>${item.description}</td>
+                            <td>${item.startTime}</td>
+                            <td>${item.endTime}</td>
+                            <td>
+                            </a>
+                            <a href="/Home/Exam/${item.id}" class="btn btn-dark " title="Detay"> Düzenle
+                            </a>
+                            </td>
+                             </tr>`;
+                });
+                $("#examx").empty();
+                $("#exams").append(tr);
+            }
+        });
+    </script>
+}

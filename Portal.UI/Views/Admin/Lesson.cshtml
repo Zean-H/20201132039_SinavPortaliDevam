@@ -1,0 +1,120 @@
+﻿@{
+    ViewData["Title"] = "Ders";
+    Layout = "_AdminLayout";
+}
+
+
+<div class="row pe-2">
+<h2>Ders Bilgileri</h2>
+<table class="table " id="tbCourseList">
+            <thead>
+                <tr>
+                    <th scope="col">Ders ID</th>
+                    <th scope="col">Ders İsmi</th>
+                    <th scope="col">Ders Açıklaması</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="dersid"></td>
+                    <td id="dersadi2"></td>
+                    <td id="dersaciklama2"></td>
+                </tr>
+            </tbody>
+        </table>
+    <div>
+        <div class="mb-2 mt-5">
+            <label>Ders Adı</label>
+            <input type="text" id="dersadi" class="form-control" />
+        </div>
+        <div class="mb-2">
+            <label>Açıklama</label>
+            <input type="text" id="dersaciklama" class="form-control"/>
+        </div>
+        <button class="btn btn-dark" id="editbtn">Düzenle</button>
+        <a class="btn btn-dark" href="/Admin/AddExam/@ViewBag.CourseId">Sınav Ekle</a>
+        <a class="btn btn-danger" href="/Admin/DeleteLesson/@ViewBag.CourseId">Dersi Sil</a>
+        <div id="divResult"></div>
+    </div>
+
+
+    @section Scripts {
+        <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                var token = localStorage.getItem("token");
+                if (token == "" || token == null) {
+                    location.href = "/Home/Login";
+                    return false;
+                }
+
+                var ApiBaseUrl = "@ViewBag.ApiBaseUrl";
+                var courseId = "@ViewBag.CourseId";
+                GetCourseInfo();
+
+                function GetCourseInfo() {
+                    $.ajax({
+                        url: ApiBaseUrl + "Course/GetCourseById/" + courseId,
+                        type: "Get",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization": "Bearer " + token
+                        },
+                        success: function (data) {
+                            $("#dersadi").val(data.title);
+                            $("#dersaciklama").val(data.description);
+                            $("#dersadi2").append(data.title);
+                            $("#dersid").append(courseId);
+                            $("#dersaciklama2").append(data.description);
+
+                        },
+                        error: function () { }
+                    });
+
+                }
+                    $("#editbtn").click(function () {
+                    var courseName= $("#dersadi").val();
+                    var description = $("#dersaciklama").val();
+
+                    var course = new Object();
+                    course.Title = courseName;
+                    course.Description = description;
+                    course.Id = courseId;
+                    $.ajax({
+                        url: ApiBaseUrl + "Course/Put",
+                        type: "Put",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization": "Bearer " + token
+                        },
+                        data: JSON.stringify(course),
+                        success: function (data) {
+                            console.log(data);
+                            if (data.status) {
+                                $("#divResult")
+                                    .show()
+                                    .removeClass()
+                                    .addClass("alert alert-success")
+                                    .html(data.message)
+                                    .fadeOut(5000);
+
+                            } else {
+                                $("#divResult")
+                                    .show()
+                                    .removeClass()
+                                    .addClass("alert alert-danger")
+                                    .html(data.message)
+                                    .fadeOut(5000);
+                            }
+
+                        },
+                        error: function () { }
+                    });
+                    location.href = "/Admin/Lesson/"+courseId;
+                });
+
+            });
+
+        </script>
+    }

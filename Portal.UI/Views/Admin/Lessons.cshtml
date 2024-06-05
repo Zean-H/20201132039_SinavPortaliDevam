@@ -1,0 +1,74 @@
+﻿@{
+    ViewData["Title"] = "Dersler";
+    Layout = "_AdminLayout";
+}
+<div class="row text-center">
+    <div class=" text-center">
+        <h2 class="h3 mb-4 text-gray-800">Dersler</h2>
+        <table class="table" id="tbCourseList">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Ders İsmi</th>
+                    <th scope="col">Ders Açıklaması</th>
+                    <th scope="col"><a class="btn btn-dark" href="/Admin/AddLesson/">Ders Oluştur</a></th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var token = localStorage.getItem("token");
+            if (token == "" || token == null) {
+                location.href = "/Home/Login";
+                return false;
+            }
+
+            var ApiBaseUrl = "@ViewBag.ApiBaseUrl";
+            GetLessonList();
+
+            function GetLessonList() {
+                $.ajax({
+                    url: ApiBaseUrl + "Course/GetAll",
+                    method: "GET",
+                    contentType: "application/json",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    },
+                    success: function (data) {
+                        LessonsToTable(data);
+                    },
+                    error: function () { }
+                });
+            }
+
+            function LessonsToTable(data) {
+                $("#txtId").val("0");
+                $("#btnDelete").hide();
+                var tr = "";
+                $.each(data, function (i, item) {
+                    var bg = "";
+                    tr += `<tr id="${(item.id)}">
+                            <td>${(i + 1)}</td>
+                            <td>${item.title}</td>
+                            <td>${item.description}</td>
+                           <td>
+                               </a>
+                               <a href="/Admin/Lesson/${item.id}" class="btn btn-dark " title="Detay"> Düzenle
+                                </a>
+                                </td>
+                              </tr>`;
+                });
+                $("#tbCourseList tbody").empty();
+                $("#tbCourseList tbody").append(tr);
+            }
+        });
+    </script>
+}

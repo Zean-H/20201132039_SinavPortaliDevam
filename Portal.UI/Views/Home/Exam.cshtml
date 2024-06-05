@@ -1,0 +1,124 @@
+﻿    <div class="container mt-5">
+        <h2 class="text-center">Online Sınav Formu</h2>
+        <div class="container mt-5">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h4>Sınav Soruları</h4>
+            </div>
+            <div class="card-body">
+                <form id = "examForm">
+                    <div class="mb-4" id="questions-container">
+                        
+                    </div>
+                    <button type="submit" class="btn btn-dark">Gönder</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/5.0.0-beta3/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('examForm').addEventListener('submit', function(event) {
+            var ApiBaseUrl = "@ViewBag.ApiBaseUrl";
+            var assessmentId = "@ViewBag.AssessmentId";
+            event.preventDefault();
+            const optionId = [];
+
+                    const options = document.querySelectorAll('input[type="radio"]:checked');
+                    options.forEach(options => {
+                    optionId.push(options.value);
+        });
+
+                const data = {
+                assessmentId: assessmentId,
+                userId: userId,
+                optionId: optionId
+        };
+            console.log(data);
+            fetch(ApiBaseUrl+'AppUserOptions/SubmitExam/Submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+
+        $(document).ready(async function() {
+            var token = localStorage.getItem("token");
+            if (token == "" || token == null) {
+                location.href = "/Home/Login";
+                return false;
+            }
+            var assessmentId = "@ViewBag.AssessmentId";
+            var ApiBaseUrl = "@ViewBag.ApiBaseUrl";
+            GetExam(assessmentId);
+
+            function GetExam(_assessmentId) {
+                $.ajax({
+                    url: ApiBaseUrl + "Question/GetAllFromAssessment/"+_assessmentId,
+                    method: "GET",
+                    contentType: "application/json",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    },
+                    success: function (data) {
+                        GetQuestions(data);
+                    },
+                    error: function () { }
+                });
+            }
+            function GetOptionsByQuestionId(_questionId) {
+                $.ajax({
+                    url: ApiBaseUrl + "Option/GetAllByQuestion?questionId="+_questionId,
+                    method: "GET",
+                    contentType: "application/json",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    },
+                    success: function (data) {
+                        OptionsToQuestions(data);
+                    },
+                    error: function () { }
+                });
+            }
+            async function GetQuestions(data) {
+                const questionsContainer = document.getElementById('questions-container');
+                $.each(data, async function (index, question) {
+                                let questionHtml = `
+                                    <div class="mb-3">
+                                        <h5>${index + 1}. ${question.text}</h5>
+                                        <div id = "${question.id}">
+                                    
+                                        </div>
+                                    </div>
+                                `;
+                  questionsContainer.insertAdjacentHTML('beforeend', questionHtml);
+                  let options = await GetOptionsByQuestionId(question.id);
+                });
+            }
+            function OptionsToQuestions(data) {
+                var options = "";
+                $.each(data, function (i, option) {
+                    options = `
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="${option.questionId}" id="${option.id}" value="${option.id}">
+                            <label class="form-check-label" for="${option.id}">
+                                ${option.text}
+                            </label>
+                        </div>
+                    `;
+                    $("#"+option.questionId).append(options);
+                });
+                
+            }
+        });
+    </script>

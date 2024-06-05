@@ -1,0 +1,101 @@
+﻿@{
+    ViewData["Title"] = "Sınavlar";
+}
+<div class="row text-center">
+    <div class=" text-center">
+        <h2 class="h3 mb-4 text-gray-800">Sınavlar</h2>
+        <div id="tables">
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var token = localStorage.getItem("token");
+            if (token == "" || token == null) {
+                location.href = "/Home/Login";
+                return false;
+            }
+            var ApiBaseUrl = "@ViewBag.ApiBaseUrl";
+            GetLessonList();
+
+            async function GetExamList(_courseId, i) {
+                $.ajax({
+                    url: ApiBaseUrl + "Assessment/GetAllFromCourse/" + _courseId,
+                    method: "GET",
+                    contentType: "application/json",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    },
+                    success: function (data) {
+                        ExamsToTable(data, i);
+                    },
+                    error: function () { }
+                });
+            }
+            function GetLessonList() {
+                $.ajax({
+                    url: ApiBaseUrl + "Course/GetCourseByStudent/"+userId,
+                    method: "GET",
+                    contentType: "application/json",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    },
+                    success: function (data) {
+                        LessonsToTable(data);
+                    },
+                    error: function () { }
+                });
+            }
+
+            function LessonsToTable(data) {
+                var html = "";
+                $.each(data, async function (i, item) {
+                    html += `
+                    <h2>${(item.title)}</h2>
+                    <table class="table">
+                    <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Sınav İsmi</th>
+                    <th scope="col">Sınav Açıklaması</th>
+                    <th scope="col">Başlangıç Tarihi</th>
+                    <th scope="col">Bitiş Tarihi</th>
+                    <th scope="col">Seçenekler</th>
+                </tr>
+            </thead>
+            <tbody id=${(i)}>
+            </tbody>
+                    </table>
+                    `;
+                    await GetExamList(item.id, i);
+                });
+                
+                $("#tables").append(html);
+            }
+
+            function ExamsToTable(data, _id) {
+                var tr = "";
+                $.each(data, function (i, item) {
+                    var bg = "";
+                    tr += `<tr id="${(item.id)}">
+                                            <td>${(i + 1)}</td>
+                                            <td>${item.title}</td>
+                                            <td>${item.description}</td>
+                                            <td>${item.startTime}</td>
+                                            <td>${item.endTime}</td>
+                                           <td>
+                                               </a>
+                                               <a href="/Home/Exam/${item.id}" class="btn btn-dark " title="Detay"> Sınava Gir
+                                                </a>
+                                                </td>
+                                              </tr>`;
+                });
+                $("#"+_id).append(tr);
+            }
+        });
+    </script>
+}

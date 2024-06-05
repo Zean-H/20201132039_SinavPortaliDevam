@@ -1,0 +1,31 @@
+﻿@section Scripts
+{
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
+    <script>
+            $(document).ready(function () {
+                var token = localStorage.getItem("token");
+                if (token == "" || token == null) {
+                    location.href = "/Home/Login";
+                    return false;
+                }
+
+                var ApiBaseUrl = "@ViewBag.ApiBaseUrl";
+                var courseId = "@ViewBag.CourseId";
+                DeleteCourse();
+
+                function DeleteCourse() {
+                    $.ajax({
+                        url: ApiBaseUrl + "Course/Delete/"+courseId,
+                        type: "DELETE",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization": "Bearer " + token
+                        },
+                        error: function () { }
+                    });
+                    location.href = "/Admin/Lessons";
+                }
+            });
+
+    </script>
+}

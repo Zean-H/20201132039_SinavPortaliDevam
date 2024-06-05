@@ -1,0 +1,74 @@
+﻿@{
+    ViewData["Title"] = "Ders";
+    Layout = "_AdminLayout";
+}
+
+
+<div class="row pe-2">
+<h2>Ders Ekle</h2>
+
+<div>
+        <div class="mb-2 mt-5">
+            <label>Ders Başlığı</label>
+            <input type="text" id="dtitle" class="form-control"/>
+        </div>
+        <div class="mb-2">
+            <label>Ders Açıklaması</label>
+            <input type="text" id="ddescription" class="form-control" />
+        </div>
+        <button class="btn btn-dark" id="registerbtn">Oluştur</button>
+        <div id="divResult"></div>
+    </div>
+
+    @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function () {
+            var ApiBaseUrl = "@ViewBag.ApiBaseUrl";
+            $("#registerbtn").click(function () {
+
+                var title = $("#dtitle").val();
+                var description = $("#ddescription").val();
+
+                if (title == "" || description == "") {
+                    $("#divResult")
+                        .show()
+                        .removeClass()
+                        .addClass("alert alert-danger")
+                        .html("Tüm Alanları Doldurunuz!")
+                        .fadeOut(5000);
+                    return false;
+                }
+                var register = new Object();
+                register.title = title;
+                register.description = description;
+                console.log(register);
+                $.ajax({
+                    url: ApiBaseUrl + "Course/AddCourse",
+                    method: "POST",
+                    data: JSON.stringify(register),
+                    contentType: "application/json",
+                    headers: {
+                            "Authorization": "Bearer " + token
+                        },
+                    success: function (data) {
+                        if (data.status) {
+                            location.href = "/Admin/Lessons";
+                        } else {
+                            $("#divResult")
+                                .show()
+                                .removeClass()
+                                .addClass("alert alert-danger")
+                                .html(data.message)
+                                .fadeOut(10000);
+                        }
+                    },
+                    error: function (e) {
+                        console.log(e);
+                    }
+                });
+            });
+
+        });
+    </script>
+    }

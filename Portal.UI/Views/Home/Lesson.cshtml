@@ -1,0 +1,95 @@
+﻿@{
+    ViewData["Title"] = "Ders";
+}
+
+<div class="text-center">
+<h2>Kullanıcı Bilgileri</h2>
+ <table class="table" id="tbCourseList">
+            <thead>
+                <tr>
+                    <th scope="col">Ders İsmi</th>
+                    <th scope="col">Ders Açıklaması</th>
+                    <th scope="col">Seçenekler</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="dersadi"></td>
+                    <td id="dersaciklama"></td>
+                    <td><button class="btn btn-dark" id="derskayit">Derse Katıl</button></td>
+                </tr>
+            </tbody>
+        </table>
+</div>
+    @section Scripts {
+        <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                var token = localStorage.getItem("token");
+                if (token == "" || token == null) {
+                    location.href = "/Home/Login";
+                    return false;
+                }
+
+                var ApiBaseUrl = "@ViewBag.ApiBaseUrl";
+                var courseId = "@ViewBag.CourseId";
+                GetCourseInfo();
+
+                function GetCourseInfo() {
+                    $.ajax({
+                        url: ApiBaseUrl + "Course/GetCourseById/" + courseId,
+                        type: "Get",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization": "Bearer " + token
+                        },
+                        success: function (data) {
+                            $("#dersadi").append(data.title);
+                            $("#dersaciklama").append(data.description);
+
+                        },
+                        error: function () { }
+                    });
+
+                }
+                $("#derskayit").click(function () {
+                    var relationship = new Object();
+                    relationship.userId = userId;
+                    relationship.courseId = courseId;
+                    $.ajax({
+                        url: ApiBaseUrl + "AppUserCourse/AddCourseToUserRelationship",
+                        type: "Post",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization": "Bearer " + token
+                        },
+                        data: JSON.stringify(relationship),
+                        success: function (data) {
+                            if (data.status) {
+                                $("#divResult")
+                                    .show()
+                                    .removeClass()
+                                    .addClass("alert alert-success")
+                                    .html(data.message)
+                                    .fadeOut(5000);
+
+                            } else {
+                                $("#divResult")
+                                    .show()
+                                    .removeClass()
+                                    .addClass("alert alert-danger")
+                                    .html(data.message)
+                                    .fadeOut(5000);
+                            }
+
+                        },
+                        error: function () { }
+                    });
+                    location.href = "/Home/Lessons";
+                });
+
+            });
+
+        </script>
+    }

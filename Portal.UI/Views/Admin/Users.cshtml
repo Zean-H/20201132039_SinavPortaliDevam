@@ -1,0 +1,75 @@
+﻿@{
+    Layout = "_AdminLayout";
+}
+
+<div class="row text-center">
+    <div class=" text-center">
+        <h2 class="h3 mb-4 text-gray-800">Kullanıcılar</h2>
+        <table class="table" id="tbCourseList">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Kullanıcı İsmi</th>
+                    <th scope="col">Tam İsmi</th>
+                    <th scope="col">Email</th>
+                    <th scope="col"><a class="btn btn-dark" href="/Admin/AddUser/">Kullanıcı Oluştur</a></th>
+                </tr>
+            </thead>
+            <tbody id="usertable">
+            </tbody>
+        </table>
+    </div>
+</div>
+@section Scripts {
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
+
+    <script>
+$(document).ready(function () {
+            var token = localStorage.getItem("token");
+            if (token == "" || token == null) {
+                location.href = "/Home/Login";
+                return false;
+            }
+
+            var ApiBaseUrl = "@ViewBag.ApiBaseUrl";
+            GetLessonList();
+
+            function GetLessonList() {
+                $.ajax({
+                    url: ApiBaseUrl + "User/GetUsers/GetAll",
+                    method: "GET",
+                    contentType: "application/json",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    },
+                    success: function (data) {
+                        console.log(data);
+                        UsersToTable(data);
+                    },
+                    error: function () { }
+                });
+            }
+
+            function UsersToTable(data) {
+                var tr = "";
+                $.each(data, function (i, item) {
+                    console.log(item.id);
+                    var bg = "";
+                    tr += `<tr id="${(item.id)}">
+                            <td>${(item.id)}</td>
+                            <td>${item.userName}</td>
+                             <td>${item.fullName}</td>
+                            <td>${item.email}</td>
+                           <td>
+                               </a>
+                               <a href="/Admin/User/${item.id}" class="btn btn-dark " title="Detay"> Düzenle
+                                </a>
+                                </td>
+                              </tr>`;
+                });
+                $("#usertable").empty();
+                $("#usertable").append(tr);
+            }
+        });
+            </script>
+}
